@@ -1,0 +1,624 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiraCast | Weather App</title>
+  <style>
+    :root {
+      --bg: #edf3ff;
+      --card: #ffffff;
+      --text: #17213b;
+      --muted: #71809d;
+      --accent: #5378f5;
+      --border: #e2e9f5;
+    }
+
+    body.dark {
+      --bg: #10172a;
+      --card: #1b2540;
+      --text: #f3f6ff;
+      --muted: #a5b1cd;
+      --accent: #86a0ff;
+      --border: #303b59;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 25px 16px;
+      transition: background .25s, color .25s;
+    }
+
+    .app {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+
+    .brand {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 15px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .theme-btn {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .search {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .search input {
+      width: 100%;
+      min-width: 0;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search input:focus {
+      border-color: var(--accent);
+    }
+
+    .hint, #status {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 10px 0 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 23px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 30px #24365b08;
+    }
+
+    .current {
+      background: linear-gradient(130deg, #5378f5, #765de8);
+      color: white;
+      border: none;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      opacity: .8;
+      margin-bottom: 8px;
+    }
+
+    #cityName {
+      font-size: 25px;
+      overflow-wrap: anywhere;
+    }
+
+    #dateText {
+      font-size: 13px;
+      opacity: .85;
+      margin-top: 8px;
+    }
+
+    .temperature {
+      font-size: clamp(48px, 10vw, 75px);
+      font-weight: 800;
+      letter-spacing: -4px;
+      margin: 12px 0;
+    }
+
+    #condition {
+      font-size: 17px;
+    }
+
+    .weather-art {
+      text-align: center;
+    }
+
+    #mainIcon {
+      font-size: clamp(75px, 15vw, 115px);
+      display: block;
+      filter: drop-shadow(0 10px 12px #17213b25);
+    }
+
+    #feels {
+      font-size: 13px;
+      margin-top: 10px;
+      opacity: .85;
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .detail {
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 15px 12px;
+      min-width: 0;
+    }
+
+    .detail .symbol {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .detail p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .detail strong {
+      font-size: 17px;
+      overflow-wrap: anywhere;
+    }
+
+    .forecast {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .day {
+      text-align: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 5px;
+      min-width: 0;
+    }
+
+    .day-name {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .day-icon {
+      font-size: 27px;
+      margin: 12px 0;
+    }
+
+    .day strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .day small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+      padding: 10px;
+    }
+
+    .footer a {
+      color: var(--accent);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 650px) {
+      .current {
+        grid-template-columns: 1fr auto;
+        padding: 19px;
+      }
+
+      .details {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .forecast {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .card {
+        padding: 17px;
+      }
+
+      .search button {
+        padding: 11px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .forecast {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">☁️ Mira<span>Cast</span></div>
+      <button class="theme-btn" id="themeBtn">🌙 Dark mode</button>
+    </header>
+
+    <form class="search" id="searchForm">
+      <input
+        id="cityInput"
+        type="text"
+        placeholder="Search city, e.g. Kaduna"
+        aria-label="City name"
+        required
+      >
+      <button id="searchBtn" type="submit">Search</button>
+    </form>
+
+    <p class="hint">Search a city anywhere in the world to check its weather.</p>
+    <p id="status" role="status" aria-live="polite">Loading weather...</p>
+
+    <section id="weatherContent" class="hidden">
+      <section class="card current">
+        <div>
+          <p class="eyebrow">CURRENT WEATHER</p>
+          <h1 id="cityName">--</h1>
+          <p id="dateText">--</p>
+          <div class="temperature"><span id="temperature">--</span><span>°C</span></div>
+          <p id="condition">--</p>
+          <p id="feels">Feels like --°C</p>
+        </div>
+
+        <div class="weather-art">
+          <span id="mainIcon">🌤️</span>
+          <p id="dayNight">--</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">Today's Details</h2>
+        <div class="details">
+          <div class="detail">
+            <div class="symbol">💧</div>
+            <p>Humidity</p>
+            <strong id="humidity">--%</strong>
+          </div>
+
+          <div class="detail">
+            <div class="symbol">💨</div>
+            <p>Wind speed</p>
+            <strong id="wind">-- km/h</strong>
+          </div>
+
+          <div class="detail">
+            <div class="symbol">🌡️</div>
+            <p>Feels like</p>
+            <strong id="feelsDetail">--°C</strong>
+          </div>
+
+          <div class="detail">
+            <div class="symbol">🌧️</div>
+            <p>Rain chance</p>
+            <strong id="rain">--%</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">7-Day Forecast</h2>
+        <div class="forecast" id="forecast"></div>
+      </section>
+    </section>
+
+    <div class="footer">
+      Weather data provided by
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.
+      Forecasts are estimates and may change.
+      <br>
+      Built with HTML, CSS and JavaScript by you ✨
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const searchForm = $("searchForm");
+    const cityInput = $("cityInput");
+    const searchBtn = $("searchBtn");
+    const statusText = $("status");
+    const weatherContent = $("weatherContent");
+    const forecastBox = $("forecast");
+
+    $("themeBtn").addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const dark = document.body.classList.contains("dark");
+
+      $("themeBtn").textContent = dark
+        ? "☀️ Light mode"
+        : "🌙 Dark mode";
+
+      localStorage.setItem("Miracast-theme", dark ? "dark" : "light");
+    });
+
+    if (localStorage.getItem("Miracast-theme") === "dark") {
+      document.body.classList.add("dark");
+      $("themeBtn").textContent = "☀️ Light mode";
+    }
+
+    function weatherInfo(code, isDay = true) {
+      if (code === 0) {
+        return { text: "Clear Mira", icon: isDay ? "☀️" : "🌙" };
+      }
+
+      if (code === 1) {
+        return { text: "Mainly clear", icon: isDay ? "🌤️" : "🌙" };
+      }
+
+      if (code === 2) return { text: "Partly cloudy", icon: "⛅" };
+      if (code === 3) return { text: "Overcast", icon: "☁️" };
+
+      if ([45, 48].includes(code)) {
+        return { text: "Foggy", icon: "🌫️" };
+      }
+
+      if ([51, 53, 55, 56, 57].includes(code)) {
+        return { text: "Drizzle", icon: "🌦️" };
+      }
+
+      if ([61, 63, 65, 66, 67].includes(code)) {
+        return { text: "Rain", icon: "🌧️" };
+      }
+
+      if ([71, 73, 75, 77].includes(code)) {
+        return { text: "Snow", icon: "❄️" };
+      }
+
+      if ([80, 81, 82].includes(code)) {
+        return { text: "Rain showers", icon: "🌦️" };
+      }
+
+      if ([85, 86].includes(code)) {
+        return { text: "Snow showers", icon: "🌨️" };
+      }
+
+      if ([95, 96, 99].includes(code)) {
+        return { text: "Thunderstorm", icon: "⛈️" };
+      }
+
+      return { text: "Weather unavailable", icon: "🌡️" };
+    }
+
+    function formatDay(dateString, options) {
+      return new Date(dateString + "T12:00:00").toLocaleDateString(
+        "en-US",
+        options
+      );
+    }
+
+    function showStatus(message) {
+      statusText.textContent = message;
+      statusText.classList.remove("hidden");
+    }
+
+    async function loadWeather(city) {
+      if (!city.trim()) {
+        showStatus("Please enter a city name.");
+        return;
+      }
+
+      searchBtn.disabled = true;
+      searchBtn.textContent = "Loading...";
+      weatherContent.classList.add("hidden");
+      showStatus("Searching for " + city.trim() + "...");
+
+      try {
+        const geoURL = new URL("https://geocoding-api.open-meteo.com/v1/search");
+        geoURL.search = new URLSearchParams({
+          name: city.trim(),
+          count: "1",
+          language: "en",
+          format: "json"
+        });
+
+        const geoResponse = await fetch(geoURL);
+        if (!geoResponse.ok) throw new Error("City search failed.");
+
+        const geoData = await geoResponse.json();
+
+        if (!geoData.results || geoData.results.length === 0) {
+          throw new Error("City not found. Check the spelling and try again.");
+        }
+
+        const place = geoData.results[0];
+
+        const params = new URLSearchParams({
+          latitude: place.latitude,
+          longitude: place.longitude,
+          current: [
+            "temperature_2m",
+            "relative_humidity_2m",
+            "apparent_temperature",
+            "is_day",
+            "precipitation",
+            "weather_code",
+            "wind_speed_10m"
+          ].join(","),
+          hourly: "precipitation_probability",
+          daily: [
+            "weather_code",
+            "temperature_2m_max",
+            "temperature_2m_min"
+          ].join(","),
+          timezone: "auto",
+          forecast_days: "7"
+        });
+
+        const weatherResponse = await fetch(
+          "https://api.open-meteo.com/v1/forecast?" + params
+        );
+
+        if (!weatherResponse.ok) throw new Error("Weather service is unavailable.");
+
+        const data = await weatherResponse.json();
+        const current = data.current;
+        const daily = data.daily;
+        const info = weatherInfo(current.weather_code, current.is_day === 1);
+
+        $("cityName").textContent =
+          place.name + (place.admin1 ? ", " + place.admin1 : "");
+
+        if (place.country) {
+          $("cityName").textContent += ", " + place.country;
+        }
+
+        $("dateText").textContent = new Date().toLocaleString("en-GB", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: data.timezone
+        });
+
+        $("temperature").textContent = Math.round(current.temperature_2m);
+        $("condition").textContent = info.text;
+        $("mainIcon").textContent = info.icon;
+        $("dayNight").textContent = current.is_day ? "Daytime" : "Nighttime";
+        $("humidity").textContent = current.relative_humidity_2m + "%";
+        $("wind").textContent = Math.round(current.wind_speed_10m) + " km/h";
+        $("feels").textContent =
+          "Feels like " + Math.round(current.apparent_temperature) + "°C";
+        $("feelsDetail").textContent =
+          Math.round(current.apparent_temperature) + "°C";
+
+        const currentHour = Number(
+          new Intl.DateTimeFormat("en-GB", {
+            hour: "2-digit",
+            hourCycle: "h23",
+            timeZone: data.timezone
+          }).format(new Date())
+        );
+
+        const hourlyIndex = data.hourly.time.findIndex(time =>
+          Number(time.slice(11, 13)) === currentHour &&
+          time.slice(0, 10) === data.current.time.slice(0, 10)
+        );
+
+        const rainChance = hourlyIndex >= 0
+          ? data.hourly.precipitation_probability[hourlyIndex]
+          : null;
+
+        $("rain").textContent =
+          rainChance == null ? "N/A" : rainChance + "%";
+
+        forecastBox.innerHTML = "";
+
+        daily.time.forEach((date, index) => {
+          const dayInfo = weatherInfo(daily.weather_code[index]);
+          const dayLabel = index === 0
+            ? "Today"
+            : formatDay(date, { weekday: "short" });
+
+          const day = document.createElement("div");
+          day.className = "day";
+
+          const dayName = document.createElement("div");
+          dayName.className = "day-name";
+          dayName.textContent = dayLabel;
+
+          const icon = document.createElement("div");
+          icon.className = "day-icon";
+          icon.textContent = dayInfo.icon;
+          icon.title = dayInfo.text;
+
+          const high = document.createElement("strong");
+          high.textContent = Math.round(daily.temperature_2m_max[index]) + "°";
+
+          const low = document.createElement("small");
+          low.textContent = Math.round(daily.temperature_2m_min[index]) + "° low";
+
+          day.append(dayName, icon, high, low);
+          forecastBox.appendChild(day);
+        });
+
+        weatherContent.classList.remove("hidden");
+        statusText.classList.add("hidden");
+        cityInput.value = place.name;
+
+      } catch (error) {
+        showStatus(error.message || "Something went wrong. Please try again.");
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = "Search";
+      }
+    }
+
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      loadWeather(cityInput.value);
+    });
+
+    loadWeather("Kaduna");
+  </script>
+</body>
+</html>
